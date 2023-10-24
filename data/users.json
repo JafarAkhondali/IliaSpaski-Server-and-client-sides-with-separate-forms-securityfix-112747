@@ -1,0 +1,36 @@
+{
+    "users": [
+        {
+            "id": 1,
+            "username": "Ilya",
+            "password": "123321",
+            "email": "Iloa.spaski123321@google.com",
+            "avatar": "avatar1.jpg",
+            "blocked": false
+        },
+        {
+            "id": 2,
+            "username": "Test",
+            "password": "test",
+            "email": "test@example.com",
+            "avatar": "avatar2.jpg",
+            "blocked": false
+        },
+        {
+            "id": 3,
+            "username": "Test2",
+            "password": "test2",
+            "email": "test2@example.com",
+            "avatar": "",
+            "blocked": false
+        },
+        {
+            "id": 4,
+            "username": "Test3",
+            "password": "test3",
+            "email": "test3@example.com",
+            "avatar": "",
+            "blocked": false
+        }
+    ]
+}

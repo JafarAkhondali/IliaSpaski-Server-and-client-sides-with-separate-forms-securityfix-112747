@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Модерация пользователей</title>
+</head>
+<body>
+    <h1>Модерация пользователей</h1>
+    <form id="moderationForm" action="/moderate" method="post">
+        <input type="text" name="username" placeholder="Логин пользователя" required><br>
+        <input type="text" name="email" placeholder="Email пользователя" required><br>
+        <label><input type="radio" name="action" value="delete" required> Удалить пользователя</label><br>
+        <label><input type="radio" name="action" value="block" required> Заблокировать пользователя</label><br>
+        <button type="submit">Применить</button>
+    </form>
+</body>
+</html>
