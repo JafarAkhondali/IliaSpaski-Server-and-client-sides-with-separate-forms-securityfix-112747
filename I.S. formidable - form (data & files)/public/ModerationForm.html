@@ -1,16 +1,36 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
+
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Модерация пользователей</title>
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-    <h1>Модерация пользователей</h1>
-    <form id="moderationForm" action="/moderate" method="post">
-        <input type="text" name="username" placeholder="Логин пользователя" required><br>
-        <input type="text" name="email" placeholder="Email пользователя" required><br>
-        <label><input type="radio" name="action" value="delete" required> Удалить пользователя</label><br>
-        <label><input type="radio" name="action" value="block" required> Заблокировать пользователя</label><br>
-        <button type="submit">Применить</button>
-    </form>
+    <div class="container">
+        <h1>Модерация пользователей</h1>
+        <form id="moderationForm" action="/moderate" method="post">
+            <div class="input-group">
+                <label for="username">Логин пользователя</label>
+                <input type="text" name="username" id="username" class="input-field" required>
+            </div>
+            <div class="input-group">
+                <label for="email">Email пользователя</label>
+                <input type="text" name="email" id="email" class="input-field">
+            </div>
+            <div class="radio-group">
+                <label>
+                    <input type="radio" name="action" value="delete" required> Удалить пользователя
+                </label>
+                <label>
+                    <input type="radio" name="action" value="block" required> Заблокировать пользователя
+                </label>
+            </div>
+            <button type="submit" class="action-button">Применить</button>
+        </form>
+    </div>
 </body>
+
 </html>
