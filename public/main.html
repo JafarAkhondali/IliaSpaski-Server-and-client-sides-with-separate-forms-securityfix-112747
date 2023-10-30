@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <title>База данных</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Стили для полей ввода и кнопок поиска */
+        .search {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"] {
+            width: 250px;
+            padding: 5px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        button.search-button {
+            background-color: #ff0000;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>База данных</h1>
+        <div class="search">
+            <input type="text" id="nameSearchInput" placeholder="Поиск по имени">
+            <button class="search-button" id="nameSearchButton">Поиск по имени</button>
+        </div>
+        <div class="search">
+            <input type="text" id="phoneSearchInput" placeholder="Поиск по номеру телефона">
+            <button class="search-button" id="phoneSearchButton">Поиск по номеру</button>
+        </div>
+        <div class="search">
+            <input type="text" id="statusSearchInput" placeholder="Поиск по статусу">
+            <button class="search-button" id="statusSearchButton">Поиск по статусу</button>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Имя</th>
+                    <th>Профессия</th>
+                    <th>Телефон</th>
+                    <th>Адрес</th>
+                    <th>Дата рождения</th>
+                    <th>Электронная почта</th>
+                    <th>Статус</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        fetch("/people.json")
+            .then(response => response.json())
+            .then(data => {
+                const peopleTable = document.querySelector("table.data-table tbody");
+
+                data.people.forEach(person => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${person.id}</td>
+                        <td>${person.name}</td>
+                        <td>${person.profession}</td>
+                        <td>${person.phone}</td>
+                        <td>${person.address}</td>
+                        <td>${person.birthdate}</td>
+                        <td>${person.email}</td>
+                        <td>${person.status}</td>
+                    `;
+
+                    peopleTable.appendChild(row);
+                });
+
+                // Функция для выполнения поиска по имени
+                const searchByName = (searchValue) => {
+                    const rows = peopleTable.querySelectorAll("tr");
+
+                    rows.forEach(row => {
+                        const nameCell = row.querySelector("td:nth-child(2)"); // Вторая ячейка (Имя)
+                        if (nameCell) {
+                            const name = nameCell.textContent.toLowerCase();
+                            if (name.includes(searchValue)) {
+                                row.style.display = "table-row"; // Показываем строку, если имя содержит введенное значение
+                            } else {
+                                row.style.display = "none"; // Скрываем строку, если имя не соответствует
+                            }
+                        }
+                    });
+                };
+
+                // Функция для выполнения поиска по номеру телефона
+                const searchByPhone = (searchValue) => {
+                    const rows = peopleTable.querySelectorAll("tr");
+
+                    rows.forEach(row => {
+                        const phoneCell = row.querySelector("td:nth-child(4)"); // Четвертая ячейка (Телефон)
+                        if (phoneCell) {
+                            const phone = phoneCell.textContent.toLowerCase();
+                            if (phone.includes(searchValue)) {
+                                row.style.display = "table-row"; // Показываем строку, если номер телефона содержит введенное значение
+                            } else {
+                                row.style.display = "none"; // Скрываем строку, если номер телефона не соответствует
+                            }
+                        }
+                    });
+                };
+
+                // Функция для выполнения поиска по статусу
+                const searchByStatus = (searchValue) => {
+                    const rows = peopleTable.querySelectorAll("tr");
+
+                    rows.forEach(row => {
+                        const statusCell = row.querySelector("td:nth-child(8)"); // Восьмая ячейка (Статус)
+                        if (statusCell) {
+                            const status = statusCell.textContent.toLowerCase();
+                            if (status.includes(searchValue)) {
+                                row.style.display = "table-row"; // Показываем строку, если статус содержит введенное значение
+                            } else {
+                                row.style.display = "none"; // Скрываем строку, если статус не соответствует
+                            }
+                        }
+                    });
+                };
+
+                // Получаем элементы для поиска
+                const nameSearchInput = document.getElementById("nameSearchInput");
+                const nameSearchButton = document.getElementById("nameSearchButton");
+                const phoneSearchInput = document.getElementById("phoneSearchInput");
+                const phoneSearchButton = document.getElementById("phoneSearchButton");
+                const statusSearchInput = document.getElementById("statusSearchInput");
+                const statusSearchButton = document.getElementById("statusSearchButton");
+
+                // Обработчики событий для кнопок поиска
+                nameSearchButton.addEventListener("click", () => {
+                    const searchValue = nameSearchInput.value.trim().toLowerCase();
+                    searchByName(searchValue);
+                });
+
+                phoneSearchButton.addEventListener("click", () => {
+                    const searchValue = phoneSearchInput.value.trim().toLowerCase();
+                    searchByPhone(searchValue);
+                });
+
+                statusSearchButton.addEventListener("click", () => {
+                    const searchValue = statusSearchInput.value.trim().toLowerCase();
+                    searchByStatus(searchValue);
+                });
+            })
+            .catch(error => console.error(error));
+    </script>
+</body>
+
+</html>
