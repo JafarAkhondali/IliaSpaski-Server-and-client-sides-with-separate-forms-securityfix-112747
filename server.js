@@ -25,6 +25,49 @@ function sendFile(response, filePath, contentType) {
     fs.createReadStream(filePath).pipe(response);
 }
 
+// Функция для обработки ошибок
+function handleError(response, statusCode, message) {
+    response.writeHead(statusCode, { "Content-Type": "text/html; charset=utf-8" });
+    response.end(`<h1>${statusCode} - ${message}</h1>`);
+}
+
+// Функция для создания HTML-страницы с сообщением
+function createMessagePage(title, message, isSuccess, redirectUrl = "/main.html",) {
+    const titleClass = isSuccess ? "ok" : "error";
+    const imageSrc = isSuccess ? "/png/Register.gif" : "/png/hiro.gif";
+
+    return `
+        <!DOCTYPE html>
+        <html lang="ru">
+        <head>
+            <meta charset="UTF-8">
+            <title>${title}</title>
+            <link rel="stylesheet" href="style.css">
+            <style>
+                .${titleClass} {
+                    font-family: Arial, sans-serif;
+                    text-decoration: none;
+                    color: ${isSuccess ? "chartreuse" : "#ff0000"};
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1 class="${titleClass}">${title}</h1>
+                <p>${message}</p>
+                <img src="${imageSrc}" alt="Гифка регистрации">
+                <p>Через 5 секунд вы будете перенаправлены на страницу.</p>
+                <script>
+                    setTimeout(function() {
+                        window.location.href = "${redirectUrl}";
+                    }, 5000);
+                </script>
+            </div>
+        </body>
+        </html>
+    `;
+}
+
 // Функция для обработки регистрации
 function handleRegistration(request, response) {
     if (request.method === "POST") {
@@ -40,58 +83,31 @@ function handleRegistration(request, response) {
             });
 
             const usersData = JSON.parse(fs.readFileSync("./data/users.json", "utf8"));
-
-            // Проверка, существует ли пользователь с таким же логином
             const existingUser = usersData.users.find(user => user.username === data.username);
+            const existingUserMail = usersData.users.find(user => user.email === data.email);
 
             if (existingUser) {
-                // Если пользователь с таким логином уже существует, вернуть сообщение как подсказку
-                const registrationHintPage = `
-                    <!DOCTYPE html>
-                    <html lang="ru">
-                    <head>
-                        <meta charset="UTF-8">
-                        <link rel="stylesheet" href="/style.css">
-                        <title>Регистрация</title>
-                    </head>
-                    <body>
-                        <div class="container">
-                            <h1 class="error">Error</h1>
-                            <p>Пользователь с логином '${data.username}' уже существует. Вы можете выбрать другой логин.</p>
-                            <img src="/png/hiro.gif" alt="Гифка регистрации">
-                        </div>
-                    </body>
-                    </html>
-                `;
+                const page = createMessagePage("Error", `Пользователь с логином '${data.username}' уже существует. Вы можете выбрать другой логин.`, false);
                 response.writeHead(200, { "Content-Type": "text/html" });
-                response.end(registrationHintPage);
+                response.end(page);
+                return;
+            }
+
+            if (existingUserMail) {
+                const page = createMessagePage("Error", `Пользователь с почтой '${data.email}' уже существует.`, false);
+                response.writeHead(200, { "Content-Type": "text/html" });
+                response.end(page);
                 return;
             }
 
             if (data.password !== data.passwordRepeat) {
-                // Если пароли не совпадают, вернуть ошибку
-                const registrationHintPage = `
-                    <!DOCTYPE html>
-                    <html lang="ru">
-                    <head>
-                        <meta charset="UTF-8">
-                        <link rel="stylesheet" href="/style.css">
-                        <title>Регистрация</title>
-                    </head>
-                    <body>
-                        <div class="container">
-                            <h1 class="error">Error</h1>
-                            <p>Пароли не совпадают.</p>
-                            <img src="/png/hiro.gif" alt="Гифка регистрации">
-                        </div>
-                    </body>
-                    </html>
-                `;
+                const page = createMessagePage("Error", "Пароли не совпадают.", false);
                 response.writeHead(200, { "Content-Type": "text/html" });
-                response.end(registrationHintPage);
+                response.end(page);
                 return;
             }
 
+            const randomPassmoder = Math.random().toString(36).substring(2, 10);
             const newUser = {
                 id: usersData.users.length + 1,
                 username: data.username,
@@ -99,40 +115,22 @@ function handleRegistration(request, response) {
                 email: data.email,
                 avatar: data.avatar || "",
                 blocked: false,
+                moder: data.moder || false,
+                passmoder: randomPassmoder,
             };
+
             usersData.users.push(newUser);
             fs.writeFileSync("./data/users.json", JSON.stringify(usersData, null, 4), "utf8");
 
-            const registrationSuccessPage = `
-                    <!DOCTYPE html>
-                    <html lang="ru">
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta http-equiv="refresh" content="5;url=index.html">
-                        <title>Регистрация успешна</title>
-                        <link rel="stylesheet" href="style.css">
-                    </head>
-                    <body>
-                        <div class="container">
-                            <h1>Регистрация успешна</h1>
-                            <img src="/png/Register.gif" alt="Гифка регистрации">
-                            <p>Вы успешно зарегистрировались. Подождите, сейчас вы будете перенаправлены на главную страницу.</p>
-                        </div>
-                    </body>
-                    </html>
-                `;
+            const successPage = createMessagePage("Регистрация успешна", "Вы успешно зарегистрировались.", true);
             response.writeHead(202, { "Content-Type": "text/html" });
-            response.end(registrationSuccessPage);
+            response.end(successPage);
         });
     } else {
         response.writeHead(405, { "Content-Type": "text/plain" });
         response.end("Method Not Allowed");
     }
 }
-
-
-
-
 
 // Функция для обработки авторизации
 function handleLogin(request, response) {
@@ -153,88 +151,18 @@ function handleLogin(request, response) {
 
             if (user) {
                 if (user.blocked) {
-                    // Если пользователь заблокирован
-                    const blockedUserPage = `
-                    <!DOCTYPE html>
-                    <html lang="ru">
-                    <head>
-                        <meta charset="UTF-8">
-                        <title>Авторизация</title>
-                        <link rel="stylesheet" href="style.css">
-                    </head>
-                    <body>
-                        <div class="container">
-                            <h1 class="error">Ошибка авторизации</h1>
-                            <p>Ваш аккаунт заблокирован. Пожалуйста, свяжитесь с администратором для дополнительной информации.</p>
-                            <img src="/png/hiro.gif" alt="Гифка регистрации">
-                            <p>Через 5 секунд вы будете перенаправлены на главную страницу.</p>
-                            <script>
-                                setTimeout(function() {
-                                    window.location.href = "/AuthorizationForm.html";
-                                }, 5000);
-                            </script>
-                        </div>
-                    </body>
-                    </html>
-                    `;
-
+                    const blockedPage = createMessagePage("Ошибка авторизации", "Ваш аккаунт заблокирован. Пожалуйста, свяжитесь с администратором для дополнительной информации.", false, "/AuthorizationForm.html");
                     response.writeHead(401, { "Content-Type": "text/html" });
-                    response.end(blockedUserPage);
+                    response.end(blockedPage);
                 } else {
-                    const AuthorizationOk = `
-                        <!DOCTYPE html>
-                        <html lang="ru">
-                        <head>
-                            <meta charset="UTF-8">
-                            <title>Авторизация</title>
-                            <link rel="stylesheet" href="style.css">
-                        </head>
-                        <body>
-                            <div class="container">
-                                <h1 class="ok">Login successful</h1>
-                                <img src="/png/Register.gif" alt="Гифка регистрации">
-                                <p>Через 5 секунд вы будете перенаправлены на главную страницу.</p>
-                                <script>
-                                    setTimeout(function() {
-                                        window.location.href = "/main.html";
-                                    }, 5000);
-                                </script>
-                            </div>
-                        </body>
-                        </html>
-                    `;
-
+                    const successPage = createMessagePage("Login successful", "Вы успешно авторизовались.", true);
                     response.writeHead(200, { "Content-Type": "text/html" });
-                    response.end(AuthorizationOk);
+                    response.end(successPage);
                 }
             } else {
-                const AuthorizationHintPage = `
-                        <!DOCTYPE html>
-                        <html lang="ru">
-                        <head>
-                            <meta charset="UTF-8">
-                            <title>Авторизация</title>
-                            <link rel="stylesheet" href="style.css">
-                        </head>
-                        <body>
-                            <div class="container">
-                                <h1 class="error">Ошибка авторизации</h1>
-                                <p>Логин или пароль неверны. Пожалуйста, проверьте введенные данные и попробуйте снова.</p>
-                                <img src="/png/hiro.gif" alt="Гифка регистрации">
-                                <p>Через 5 секунд вы будете перенаправлены на страницу авторизации.</p>
-                                <script>
-                                    setTimeout(function() {
-                                        window.location.href = "/AuthorizationForm.html";
-                                    }, 5000);
-                                </script>
-                            </div>
-                        </body>
-                        </html>
-                    `;
-
+                const errorPage = createMessagePage("Ошибка авторизации", "Логин или пароль неверны. Пожалуйста, проверьте введенные данные и попробуйте снова.", false, "/AuthorizationForm.html");
                 response.writeHead(401, { "Content-Type": "text/html" });
-                response.end(AuthorizationHintPage);
-
+                response.end(errorPage);
             }
         });
     } else {
@@ -242,7 +170,6 @@ function handleLogin(request, response) {
         response.end("Method Not Allowed");
     }
 }
-
 
 // Функция для обработки модерации
 function handleModeration(request, response) {
@@ -259,23 +186,52 @@ function handleModeration(request, response) {
             });
 
             const usersData = JSON.parse(fs.readFileSync("./data/users.json", "utf8"));
-            const userToModerate = usersData.users.find((u) => u.username === data.username || u.email === data.email);
-            if (userToModerate) {
-                if (data.action === "block") {
-                    userToModerate.blocked = true;
-                } else if (data.action === "delete") {
-                    const index = usersData.users.indexOf(userToModerate);
-                    if (index > -1) {
-                        usersData.users.splice(index, 1);
-                    }
-                }
+            const moderator = usersData.users.find(
+                (user) =>
+                    user.username === data.moderatorUsername &&
+                    user.passmoder === data.moderatorPassword &&
+                    user.moder
+            );
 
-                fs.writeFileSync("./data/users.json", JSON.stringify(usersData, null, 4), "utf8");
-                response.writeHead(200, { "Content-Type": "application/json" });
-                response.end(JSON.stringify({ message: "Moderation successful" }));
+            if (moderator) {
+                const userToModerate = usersData.users.find(
+                    (user) =>
+                        user.username === data.username || user.email === data.email
+                );
+
+                if (userToModerate) {
+                    if (data.action === "delete") {
+                        const index = usersData.users.indexOf(userToModerate);
+                        if (index > -1) {
+                            usersData.users.splice(index, 1);
+                            fs.writeFileSync("./data/users.json", JSON.stringify(usersData, null, 4), "utf8");
+                            const moderationOkPage = createMessagePage("Успешно", "Пользователь успешно удален.", true);
+                            response.writeHead(200, { "Content-Type": "text/html" });
+                            response.end(moderationOkPage);
+                        } else {
+                            const notFoundPage = createMessagePage("Пользователь не найден", "Пользователь не найден.", false);
+                            response.writeHead(404, { "Content-Type": "text/html" });
+                            response.end(notFoundPage);
+                        }
+                    } else if (data.action === "block") {
+                        userToModerate.blocked = true;
+                        fs.writeFileSync("./data/users.json", JSON.stringify(usersData, null, 4), "utf8");
+                        const moderationOkPage = createMessagePage("Успешно", "Пользователь успешно заблокирован.", true);
+                        response.writeHead(200, { "Content-Type": "text/html" });
+                        response.end(moderationOkPage);
+                    } else {
+                        response.writeHead(400, { "Content-Type": "text/html" });
+                        response.end("Bad Request");
+                    }
+                } else {
+                    const notFoundPage = createMessagePage("Пользователь не найден", "Пользователь не найден.", false);
+                    response.writeHead(404, { "Content-Type": "text/html" });
+                    response.end(notFoundPage);
+                }
             } else {
-                response.writeHead(404, { "Content-Type": "application/json" });
-                response.end(JSON.stringify({ message: "User not found" }));
+                const accessDeniedPage = createMessagePage("Нет прав", "У вас нет прав доступа.", false, "/main.html");
+                response.writeHead(403, { "Content-Type": "text/html" });
+                response.end(accessDeniedPage);
             }
         });
     } else {
@@ -283,6 +239,7 @@ function handleModeration(request, response) {
         response.end("Method Not Allowed");
     }
 }
+
 
 // Создаем HTTP-сервер
 const server = http.createServer(function (request, response) {
@@ -325,10 +282,7 @@ const server = http.createServer(function (request, response) {
             const filePath = path.join("./public", url.substring(1));
             fs.access(filePath, fs.constants.R_OK, (err) => {
                 if (err) {
-                    response.writeHead(404, {
-                        "Content-Type": "text/html; charset=utf-8",
-                    });
-                    response.end("<h1>Not found</h1>");
+                    handleError(response, 404, "Not Found");
                 } else {
                     const extname = path.extname(filePath);
                     const contentType = contentTypes[extname] || "application/octet-stream";
@@ -345,3 +299,4 @@ server.listen(port, function () {
 });
 
 //node server.js 
+

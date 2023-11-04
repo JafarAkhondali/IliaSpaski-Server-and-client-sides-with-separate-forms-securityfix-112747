@@ -14,11 +14,19 @@
         <form id="moderationForm" action="/moderate" method="post">
             <div class="input-group">
                 <label for="username">Логин пользователя</label>
-                <input type="text" name="username" id="username" class="input-field" required>
+                <input type="text" name="username" id="username" class="input-field">
             </div>
             <div class="input-group">
                 <label for="email">Email пользователя</label>
                 <input type="text" name="email" id="email" class="input-field">
+            </div>
+            <div class="input-group">
+                <label for="moderatorUsername">Логин модератора</label>
+                <input type="text" name="moderatorUsername" id="moderatorUsername" class="input-field">
+            </div>
+            <div class="input-group">
+                <label for="moderatorPassword">Пароль модерации</label>
+                <input type="password" name="moderatorPassword" id="moderatorPassword" class="input-field">
             </div>
             <div class="radio-group">
                 <label>

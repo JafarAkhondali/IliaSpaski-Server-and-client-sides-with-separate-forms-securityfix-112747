@@ -6,15 +6,9 @@
             "password": "123321",
             "email": "Iloa.spaski123321@google.com",
             "avatar": "avatar1.jpg",
-            "blocked": false
-        },
-        {
-            "id": 2,
-            "username": "ilia",
-            "password": "123321",
-            "email": "1@11",
-            "avatar": "",
-            "blocked": true
+            "blocked": false,
+            "moder": true,
+            "passmoder": "12332111"
         }
     ]
 }
