@@ -279,6 +279,11 @@ const server = http.createServer(function (request, response) {
             break;
 
         default:
+    if (path.normalize(decodeURI(request.url)) !== decodeURI(request.url)) {
+        response.statusCode = 403;
+        response.end();
+        return;
+    }
             const filePath = path.join("./public", url.substring(1));
             fs.access(filePath, fs.constants.R_OK, (err) => {
                 if (err) {
